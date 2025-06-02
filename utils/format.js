@@ -22,3 +22,4 @@
 2025-05-14 - update utils/format.js
 2025-05-23 - update utils/format.js
 2025-05-30 - update utils/format.js
+2025-06-02 - update utils/format.js
