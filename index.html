@@ -1,20 +1,160 @@
-<!DOCTYPE html>
-<html lang="en">
+<!doctype html>
+<html lang="tr">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Goal Tracker App</title>
-  <link rel="stylesheet" href="style.css"/>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>HealthTrack Pro Dashboard</title>
+  <link rel="stylesheet" href="./style.css" />
 </head>
 <body>
-  <div class="container">
-    <h1>Goal Tracker</h1>
-    <form id="goal-form">
-      <input type="text" id="goal-input" placeholder="Yeni hedef girin..." required />
-      <button type="submit">Ekle</button>
-    </form>
-    <ul id="goal-list"></ul>
-  </div>
-  <script src="app.js"></script>
+  <header>
+    <h1>HealthTrack Pro</h1>
+    <div class="auth">
+      <input id="email" type="email" placeholder="email" />
+      <input id="password" type="password" placeholder="password" />
+      <button id="btn-register">Kayıt</button>
+      <button id="btn-login">Giriş</button>
+      <span id="status"></span>
+    </div>
+  </header>
+
+  <main>
+    <section class="controls">
+      <select id="dataset">
+        <option value="vitals">Vitals</option>
+        <option value="workouts">Workouts</option>
+        <option value="sleep">Sleep</option>
+        <option value="meals">Meals</option>
+        <option value="measurements">Measurements</option>
+        <option value="goals">Goals</option>
+        <option value="reminders">Reminders</option>
+      </select>
+      <input id="q" placeholder="ara (note/type/mood)" />
+      <select id="sort">
+        <option value="-createdAt">↧ createdAt</option>
+        <option value="createdAt">↥ createdAt</option>
+        <option value="-startedAt">↧ startedAt</option>
+        <option value="startedAt">↥ startedAt</option>
+        <option value="-whenAt">↧ whenAt</option>
+        <option value="whenAt">↥ whenAt</option>
+      </select>
+      <button id="btn-load">Yükle</button>
+    </section>
+
+    <section class="grid">
+      <div class="card">
+        <h3>Özet</h3>
+        <pre id="overview"></pre>
+      </div>
+      <div class="card chart">
+        <h3>Trend (HR / Sleep / Workouts)</h3>
+        <canvas id="chart" width="640" height="220"></canvas>
+      </div>
+      <div class="card wide">
+        <h3>Son Kayıtlar</h3>
+        <table id="table">
+          <thead></thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+
+  <script src="./tracker.js"></script>
+  <script>
+    const api = (path, opts={}) => fetch(path, opts).then(r => r.json());
+    let token = null;
+
+    async function register() {
+      const email = document.getElementById('email').value;
+      const password = document.getElementById('password').value;
+      const res = await api('/api/register', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({ email, password }) });
+      document.getElementById('status').textContent = res.id ? 'Kayıt OK' : (res.error||'Hata');
+    }
+    async function login() {
+      const email = document.getElementById('email').value;
+      const password = document.getElementById('password').value;
+      const res = await api('/api/login', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({ email, password }) });
+      if (res.token) {
+        token = res.token;
+        window.__tracker.setUser(res.user.id);
+        document.getElementById('status').textContent = 'Giriş OK';
+        load();
+      } else {
+        document.getElementById('status').textContent = res.error || 'Hata';
+      }
+    }
+
+    function drawChart({ heart, sleep, workouts }) {
+      const canvas = document.getElementById('chart');
+      const ctx = canvas.getContext('2d');
+      ctx.clearRect(0,0,canvas.width,canvas.height);
+      const padding = 24, w = canvas.width - padding*2, h = canvas.height - padding*2;
+
+      function scaleY(arr, key) {
+        const vals = arr.map(x=>+x[key]||0);
+        const max = Math.max(1, ...vals);
+        return v => padding + h - (v / max) * h;
+      }
+      function scaleX(len) {
+        const step = len ? w / len : w;
+        return i => padding + i*step;
+      }
+      // Heart
+      const syH = scaleY(heart,'avgHR'), sxH = scaleX(heart.length);
+      ctx.beginPath(); ctx.moveTo(padding, padding+h);
+      heart.forEach((d,i)=>{ ctx.lineTo(sxH(i), syH(+d.avgHR||0)); }); ctx.stroke();
+
+      // Sleep
+      const syS = scaleY(sleep,'hours'), sxS = scaleX(sleep.length);
+      ctx.beginPath(); sleep.forEach((d,i)=>{ ctx.lineTo(sxS(i), syS(+d.hours||0)); }); ctx.stroke();
+
+      // Workouts
+      const syW = scaleY(workouts,'totalMin'), sxW = scaleX(workouts.length);
+      ctx.beginPath(); workouts.forEach((d,i)=>{ ctx.lineTo(sxW(i), syW(+d.totalMin||0)); }); ctx.stroke();
+    }
+
+    function renderTable(items) {
+      const thead = document.querySelector('#table thead');
+      const tbody = document.querySelector('#table tbody');
+      tbody.innerHTML = ''; thead.innerHTML = '';
+      if (!items || !items.length) return;
+
+      const keys = Object.keys(items[0]);
+      thead.innerHTML = '<tr>' + keys.map(k=>`<th>${k}</th>`).join('') + '</tr>';
+      items.forEach(it=>{
+        const tr = document.createElement('tr');
+        tr.innerHTML = keys.map(k=>`<td>${String(it[k] ?? '')}</td>`).join('');
+        tbody.appendChild(tr);
+      });
+    }
+
+    async function load() {
+      if (!token) return;
+      const ds = document.getElementById('dataset').value;
+      const q = document.getElementById('q').value;
+      const sort = document.getElementById('sort').value;
+      const headers = { 'Authorization': 'Bearer '+token };
+
+      const overview = await api('/api/insights/overview', { headers });
+      document.getElementById('overview').textContent = JSON.stringify(overview, null, 2);
+
+      const trend = await api('/api/insights/trends?limit=30', { headers });
+      drawChart(trend);
+
+      const data = await api(`/api/${ds}?limit=20&page=1&sort=${encodeURIComponent(sort)}${q ? '&q='+encodeURIComponent(q):''}`, { headers });
+      renderTable(data.items);
+    }
+
+    document.getElementById('btn-register').addEventListener('click', register);
+    document.getElementById('btn-login').addEventListener('click', login);
+    document.getElementById('btn-load').addEventListener('click', load);
+
+    // Demo tracking
+    setTimeout(()=>{
+      window.__tracker.track('page_view', { route: location.pathname });
+    }, 400);
+  </script>
 </body>
 </html>
+
