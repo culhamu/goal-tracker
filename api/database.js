@@ -1,44 +1,47 @@
-2025-01-02 - update api/database.js
-2025-01-04 - update api/database.js
-2025-01-07 - update api/database.js
-2025-01-10 - update api/database.js
-2025-01-14 - update api/database.js
-2025-01-15 - update api/database.js
-2025-01-16 - update api/database.js
-2025-01-16 - update api/database.js
-2025-01-30 - update api/database.js
-2025-01-31 - update api/database.js
-2025-02-12 - update api/database.js
-2025-02-17 - update api/database.js
-2025-02-19 - update api/database.js
-2025-03-03 - update api/database.js
-2025-03-19 - update api/database.js
-2025-03-22 - update api/database.js
-2025-04-04 - update api/database.js
-2025-04-07 - update api/database.js
-2025-04-08 - update api/database.js
-2025-04-09 - update api/database.js
-2025-04-18 - update api/database.js
-2025-05-04 - update api/database.js
-2025-05-06 - update api/database.js
-2025-05-13 - update api/database.js
-2025-05-16 - update api/database.js
-2025-05-20 - update api/database.js
-2025-05-27 - update api/database.js
-2025-05-27 - update api/database.js
-2025-05-30 - update api/database.js
-2025-06-05 - update api/database.js
-2025-06-09 - update api/database.js
-2025-06-09 - update api/database.js
-2025-06-10 - update api/database.js
-2025-06-16 - update api/database.js
-2025-06-18 - update api/database.js
-2025-07-08 - update api/database.js
-2025-07-18 - update api/database.js
-2025-07-22 - update api/database.js
-2025-07-27 - update api/database.js
-2025-08-06 - update api/database.js
-2025-08-09 - update api/database.js
-2025-08-13 - update api/database.js
-2025-08-18 - update api/database.js
-2025-08-23 - update api/database.js
+'use strict';
+/**
+ * better-sqlite3 ile basit veritabanı ve şema yönetimi.
+ */
+const Database = require('better-sqlite3');
+const path = require('path');
+
+let db;
+
+function initDb() {
+  const dbPath = path.join(__dirname, 'data.sqlite');
+  db = new Database(dbPath);
+  db.pragma('journal_mode = WAL');
+
+  db.exec(`
+    CREATE TABLE IF NOT EXISTS users (
+      id TEXT PRIMARY KEY,
+      email TEXT UNIQUE NOT NULL,
+      passwordHash TEXT NOT NULL,
+      role TEXT NOT NULL DEFAULT 'user',
+      createdAt TEXT NOT NULL
+    );
+
+    CREATE TABLE IF NOT EXISTS events (
+      id TEXT PRIMARY KEY,
+      type TEXT NOT NULL,
+      route TEXT,
+      payload TEXT NOT NULL,
+      userId TEXT,
+      ip TEXT,
+      ua TEXT,
+      createdAt TEXT NOT NULL,
+      FOREIGN KEY(userId) REFERENCES users(id)
+    );
+
+    CREATE INDEX IF NOT EXISTS idx_events_createdAt ON events(createdAt);
+    CREATE INDEX IF NOT EXISTS idx_events_type ON events(type);
+    CREATE INDEX IF NOT EXISTS idx_events_route ON events(route);
+  `);
+}
+
+function getDb() {
+  if (!db) throw new Error('DB not initialized');
+  return db;
+}
+
+module.exports = { initDb, getDb };
