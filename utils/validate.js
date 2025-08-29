@@ -1,57 +1,58 @@
-2025-01-02 - update utils/validate.js
-2025-01-04 - update utils/validate.js
-2025-01-14 - update utils/validate.js
-2025-01-18 - update utils/validate.js
-2025-01-20 - update utils/validate.js
-2025-01-24 - update utils/validate.js
-2025-01-29 - update utils/validate.js
-2025-02-07 - update utils/validate.js
-2025-02-10 - update utils/validate.js
-2025-02-11 - update utils/validate.js
-2025-02-17 - update utils/validate.js
-2025-02-24 - update utils/validate.js
-2025-02-27 - update utils/validate.js
-2025-03-04 - update utils/validate.js
-2025-03-04 - update utils/validate.js
-2025-03-05 - update utils/validate.js
-2025-03-12 - update utils/validate.js
-2025-03-12 - update utils/validate.js
-2025-03-14 - update utils/validate.js
-2025-03-24 - update utils/validate.js
-2025-03-25 - update utils/validate.js
-2025-03-26 - update utils/validate.js
-2025-03-30 - update utils/validate.js
-2025-04-02 - update utils/validate.js
-2025-04-03 - update utils/validate.js
-2025-04-04 - update utils/validate.js
-2025-04-09 - update utils/validate.js
-2025-04-10 - update utils/validate.js
-2025-04-13 - update utils/validate.js
-2025-04-15 - update utils/validate.js
-2025-04-17 - update utils/validate.js
-2025-04-18 - update utils/validate.js
-2025-04-21 - update utils/validate.js
-2025-04-30 - update utils/validate.js
-2025-05-02 - update utils/validate.js
-2025-05-02 - update utils/validate.js
-2025-05-04 - update utils/validate.js
-2025-05-15 - update utils/validate.js
-2025-06-04 - update utils/validate.js
-2025-06-04 - update utils/validate.js
-2025-06-17 - update utils/validate.js
-2025-06-21 - update utils/validate.js
-2025-06-21 - update utils/validate.js
-2025-06-25 - update utils/validate.js
-2025-06-29 - update utils/validate.js
-2025-07-03 - update utils/validate.js
-2025-07-08 - update utils/validate.js
-2025-07-11 - update utils/validate.js
-2025-07-15 - update utils/validate.js
-2025-07-17 - update utils/validate.js
-2025-07-24 - update utils/validate.js
-2025-08-02 - update utils/validate.js
-2025-08-05 - update utils/validate.js
-2025-08-07 - update utils/validate.js
-2025-08-20 - update utils/validate.js
-2025-08-20 - update utils/validate.js
-2025-08-28 - update utils/validate.js
+
+---
+
+## app.js
+```js
+'use strict';
+const express = require('express');
+const helmet = require('helmet');
+const cors = require('cors');
+const morgan = require('morgan');
+const rateLimit = require('express-rate-limit');
+const dotenv = require('dotenv');
+
+dotenv.config();
+
+const { router } = require('./routes');
+const { initDb } = require('./database');
+
+const app = express();
+const PORT = process.env.PORT || 3000;
+
+app.use(helmet({
+  crossOriginResourcePolicy: { policy: 'cross-origin' }
+}));
+app.use(cors({ origin: '*', methods: ['GET','POST','PATCH','DELETE'] }));
+app.use(express.json({ limit: '1mb' }));
+app.use(express.urlencoded({ extended: true }));
+
+app.use(morgan(':method :url :status :res[content-length] - :response-time ms'));
+
+const limiter = rateLimit({
+  windowMs: 60 * 1000,
+  max: 120,
+  standardHeaders: true
+});
+app.use('/api', limiter);
+
+// DB init & ready
+let ready = false;
+try {
+  initDb();
+  ready = true;
+  console.log('DB initialized. Ready.');
+} catch (e) {
+  console.error('DB init failed', e);
+  process.exit(1);
+}
+
+app.get('/api/health', (req, res) => {
+  res.json({ ok: true, ready, version: '1.0.0', ts: new Date().toISOString() });
+});
+
+app.use('/', express.static(__dirname));
+app.use('/api', router);
+
+app.listen(PORT, () => {
+  console.log(`HealthTrack Pro listening on http://localhost:${PORT}`);
+});
