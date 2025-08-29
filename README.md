@@ -1,40 +1,13 @@
-2025-01-03 - update README.md
-2025-01-09 - update README.md
-2025-01-13 - update README.md
-2025-01-15 - update README.md
-2025-01-24 - update README.md
-2025-01-28 - update README.md
-2025-01-29 - update README.md
-2025-02-19 - update README.md
-2025-02-23 - update README.md
-2025-02-23 - update README.md
-2025-03-11 - update README.md
-2025-03-19 - update README.md
-2025-03-20 - update README.md
-2025-03-28 - update README.md
-2025-03-29 - update README.md
-2025-04-13 - update README.md
-2025-04-14 - update README.md
-2025-04-19 - update README.md
-2025-04-23 - update README.md
-2025-04-23 - update README.md
-2025-05-08 - update README.md
-2025-05-19 - update README.md
-2025-05-20 - update README.md
-2025-05-20 - update README.md
-2025-05-26 - update README.md
-2025-05-29 - update README.md
-2025-06-02 - update README.md
-2025-06-02 - update README.md
-2025-06-10 - update README.md
-2025-06-11 - update README.md
-2025-06-23 - update README.md
-2025-06-24 - update README.md
-2025-06-29 - update README.md
-2025-06-30 - update README.md
-2025-07-01 - update README.md
-2025-07-21 - update README.md
-2025-08-04 - update README.md
-2025-08-15 - update README.md
-2025-08-22 - update README.md
-2025-08-26 - update README.md
+# Goal Tracker App
+
+Basit bir hedef takip uygulaması.
+
+## Özellikler
+- Hedef ekleme
+- Hedefi tamamlama
+- Hedef silme
+- Veriler localStorage'da saklanır
+
+## Nasıl çalıştırılır?
+1. Dosyaları bir klasöre koyun
+2. `index.html` dosyasını tarayıcıda açın
