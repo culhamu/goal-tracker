@@ -1,40 +1,48 @@
-2025-01-15 - update app.js
-2025-01-17 - update app.js
-2025-01-20 - update app.js
-2025-01-31 - update app.js
-2025-02-04 - update app.js
-2025-02-07 - update app.js
-2025-02-11 - update app.js
-2025-02-17 - update app.js
-2025-03-03 - update app.js
-2025-03-05 - update app.js
-2025-03-06 - update app.js
-2025-03-18 - update app.js
-2025-03-28 - update app.js
-2025-04-04 - update app.js
-2025-04-11 - update app.js
-2025-04-15 - update app.js
-2025-04-23 - update app.js
-2025-04-30 - update app.js
-2025-05-06 - update app.js
-2025-05-06 - update app.js
-2025-05-14 - update app.js
-2025-05-28 - update app.js
-2025-06-02 - update app.js
-2025-06-04 - update app.js
-2025-06-11 - update app.js
-2025-06-12 - update app.js
-2025-06-23 - update app.js
-2025-07-02 - update app.js
-2025-07-06 - update app.js
-2025-07-16 - update app.js
-2025-07-17 - update app.js
-2025-07-22 - update app.js
-2025-07-29 - update app.js
-2025-07-29 - update app.js
-2025-07-29 - update app.js
-2025-08-01 - update app.js
-2025-08-06 - update app.js
-2025-08-10 - update app.js
-2025-08-11 - update app.js
-2025-08-19 - update app.js
+const form = document.getElementById("goal-form");
+const input = document.getElementById("goal-input");
+const list = document.getElementById("goal-list");
+
+let goals = JSON.parse(localStorage.getItem("goals")) || [];
+
+function saveGoals() {
+  localStorage.setItem("goals", JSON.stringify(goals));
+}
+
+function renderGoals() {
+  list.innerHTML = "";
+  goals.forEach((goal, index) => {
+    const li = document.createElement("li");
+    li.className = goal.completed ? "completed" : "";
+
+    li.innerHTML = `
+      <span onclick="toggleGoal(${index})">${goal.text}</span>
+      <button onclick="removeGoal(${index})">Sil</button>
+    `;
+    list.appendChild(li);
+  });
+}
+
+function toggleGoal(index) {
+  goals[index].completed = !goals[index].completed;
+  saveGoals();
+  renderGoals();
+}
+
+function removeGoal(index) {
+  goals.splice(index, 1);
+  saveGoals();
+  renderGoals();
+}
+
+form.addEventListener("submit", (e) => {
+  e.preventDefault();
+  const text = input.value.trim();
+  if (text !== "") {
+    goals.push({ text, completed: false });
+    input.value = "";
+    saveGoals();
+    renderGoals();
+  }
+});
+
+renderGoals();
