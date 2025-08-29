@@ -1,48 +1,122 @@
+/* style.css - Sağlık İzleme Uygulaması UI */
+/* Modern, responsive, light/dark mode destekli */
+
+:root {
+  --primary: #36a2eb;
+  --secondary: #4bc0c0;
+  --danger: #ff6384;
+  --bg-light: #f9f9f9;
+  --bg-dark: #1e1e1e;
+  --text-light: #333;
+  --text-dark: #eee;
+}
+
 body {
-  font-family: sans-serif;
-  background-color: #f4f4f4;
+  font-family: "Inter", sans-serif;
+  margin: 0;
+  padding: 0;
+  background: var(--bg-light);
+  color: var(--text-light);
+  transition: background 0.3s, color 0.3s;
+}
+
+.dark-mode {
+  background: var(--bg-dark);
+  color: var(--text-dark);
+}
+
+header {
+  background: var(--primary);
+  color: #fff;
+  padding: 1rem 2rem;
   display: flex;
-  justify-content: center;
-  margin-top: 50px;
+  justify-content: space-between;
+  align-items: center;
+}
+
+header h1 {
+  margin: 0;
+  font-size: 1.5rem;
+}
+
+button, input, select {
+  padding: 0.6rem 1rem;
+  margin: 0.2rem;
+  border: none;
+  border-radius: 6px;
+  font-size: 1rem;
+}
+
+button {
+  cursor: pointer;
+  background: var(--primary);
+  color: #fff;
+  transition: background 0.2s;
+}
+
+button:hover {
+  background: #2b8ad6;
 }
 
 .container {
-  background: white;
-  padding: 20px;
-  border-radius: 5px;
-  width: 350px;
-  box-shadow: 0 0 10px rgba(0,0,0,0.1);
+  max-width: 900px;
+  margin: 2rem auto;
+  padding: 1rem;
 }
 
 form {
   display: flex;
+  flex-direction: column;
+  background: rgba(0,0,0,0.03);
+  padding: 1rem;
+  border-radius: 8px;
+  margin-bottom: 1.5rem;
 }
 
-input {
-  flex: 1;
-  padding: 8px;
+form label {
+  margin-bottom: 0.5rem;
+  font-weight: bold;
 }
 
-button {
-  padding: 8px 12px;
-  margin-left: 5px;
-  cursor: pointer;
+form input, form select {
+  margin-bottom: 1rem;
+  border: 1px solid #ccc;
 }
 
-ul {
-  list-style-type: none;
+#dashboard {
+  display: none;
+}
+
+#activity-log {
+  list-style: none;
   padding: 0;
-  margin-top: 20px;
 }
 
-li {
-  display: flex;
-  justify-content: space-between;
-  padding: 6px 0;
-  border-bottom: 1px solid #eee;
+#activity-log li {
+  background: rgba(0,0,0,0.05);
+  margin: 0.5rem 0;
+  padding: 0.7rem;
+  border-radius: 6px;
 }
 
-.completed {
-  text-decoration: line-through;
-  color: gray;
+.stat {
+  background: var(--secondary);
+  color: #fff;
+  padding: 1rem;
+  margin: 0.5rem 0;
+  border-radius: 8px;
+  font-weight: bold;
+  text-align: center;
+}
+
+canvas {
+  margin-top: 1rem;
+  max-width: 100%;
+}
+
+#theme-toggle {
+  background: transparent;
+  color: #fff;
+  font-size: 1.2rem;
+  border: none;
 }
