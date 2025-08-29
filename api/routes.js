@@ -1,41 +1,37 @@
-2025-01-04 - update api/routes.js
-2025-01-22 - update api/routes.js
-2025-01-29 - update api/routes.js
-2025-02-03 - update api/routes.js
-2025-02-07 - update api/routes.js
-2025-02-11 - update api/routes.js
-2025-02-12 - update api/routes.js
-2025-02-18 - update api/routes.js
-2025-02-27 - update api/routes.js
-2025-04-04 - update api/routes.js
-2025-04-16 - update api/routes.js
-2025-04-24 - update api/routes.js
-2025-04-24 - update api/routes.js
-2025-05-04 - update api/routes.js
-2025-05-05 - update api/routes.js
-2025-05-09 - update api/routes.js
-2025-05-12 - update api/routes.js
-2025-05-15 - update api/routes.js
-2025-05-15 - update api/routes.js
-2025-06-03 - update api/routes.js
-2025-06-12 - update api/routes.js
-2025-06-20 - update api/routes.js
-2025-06-20 - update api/routes.js
-2025-06-24 - update api/routes.js
-2025-06-24 - update api/routes.js
-2025-06-25 - update api/routes.js
-2025-06-26 - update api/routes.js
-2025-07-01 - update api/routes.js
-2025-07-09 - update api/routes.js
-2025-07-10 - update api/routes.js
-2025-07-21 - update api/routes.js
-2025-07-29 - update api/routes.js
-2025-08-02 - update api/routes.js
-2025-08-08 - update api/routes.js
-2025-08-09 - update api/routes.js
-2025-08-09 - update api/routes.js
-2025-08-13 - update api/routes.js
-2025-08-24 - update api/routes.js
-2025-08-27 - update api/routes.js
-2025-08-27 - update api/routes.js
-2025-08-29 - update api/routes.js
+'use strict';
+/**
+ * Express yönlendirmeleri: auth, track, events, insights
+ */
+const { Router } = require('express');
+const { v4: uuid } = require('uuid');
+
+const { getDb } = require('./database');
+const { hashPassword, verifyPassword, signToken, authRequired, requireRole } = require('./auth');
+const { validate, schemas, sanitizeQuery } = require('./utils/validate');
+const { safeString } = require('./utils/format');
+const { analyticsService } = require('./api');
+
+const router = Router();
+
+// --- AUTH ---
+router.post('/register', async (req, res) => {
+  const body = req.body || {};
+  const v = validate(schemas.register, body);
+  if (!v.ok) return res.status(400).json({ error: v.error });
+
+  const db = getDb();
+  const existing = db.prepare('SELECT id FROM users WHERE email = ?').get(body.email.toLowerCase());
+  if (existing) return res.status(409).json({ error: 'Email already exists' });
+
+  const id = uuid();
+  const passwordHash = await hashPassword(body.password);
+  db.prepare('INSERT INTO users (id, email, passwordHash, role, createdAt) VALUES (?,?,?,?,?)')
+    .run(id, body.email.toLowerCase(), passwordHash, body.role || 'user', new Date().toISOString());
+
+  res.status(201).json({ id, email: body.email, role: body.role || 'user' });
+});
+
+router.post('/login', async (req, res) => {
+  const body = req.body || {};
+  const v = validate(schemas.login, body);
+  if
