@@ -1,42 +1,15 @@
-2025-01-03 - update utils/format.js
-2025-01-06 - update utils/format.js
-2025-01-09 - update utils/format.js
-2025-01-16 - update utils/format.js
-2025-01-30 - update utils/format.js
-2025-02-06 - update utils/format.js
-2025-02-10 - update utils/format.js
-2025-02-25 - update utils/format.js
-2025-02-25 - update utils/format.js
-2025-02-27 - update utils/format.js
-2025-03-03 - update utils/format.js
-2025-03-07 - update utils/format.js
-2025-03-07 - update utils/format.js
-2025-03-12 - update utils/format.js
-2025-03-15 - update utils/format.js
-2025-03-15 - update utils/format.js
-2025-03-28 - update utils/format.js
-2025-04-01 - update utils/format.js
-2025-04-03 - update utils/format.js
-2025-04-25 - update utils/format.js
-2025-04-25 - update utils/format.js
-2025-05-14 - update utils/format.js
-2025-05-23 - update utils/format.js
-2025-05-30 - update utils/format.js
-2025-06-02 - update utils/format.js
-2025-06-03 - update utils/format.js
-2025-06-17 - update utils/format.js
-2025-06-27 - update utils/format.js
-2025-06-27 - update utils/format.js
-2025-06-30 - update utils/format.js
-2025-07-05 - update utils/format.js
-2025-07-06 - update utils/format.js
-2025-07-07 - update utils/format.js
-2025-07-09 - update utils/format.js
-2025-07-09 - update utils/format.js
-2025-07-25 - update utils/format.js
-2025-08-07 - update utils/format.js
-2025-08-25 - update utils/format.js
-2025-08-27 - update utils/format.js
-2025-08-28 - update utils/format.js
-2025-08-29 - update utils/format.js
-2025-08-29 - update utils/format.js
+'use strict';
+
+function safeString(s, max = 256) {
+  if (typeof s !== 'string') return null;
+  return s.length > max ? s.slice(0, max) : s;
+}
+function clampNumber(n, min, max) {
+  if (typeof n !== 'number' || Number.isNaN(n)) return null;
+  return Math.max(min, Math.min(max, n));
+}
+function toIso(d) {
+  try { return new Date(d).toISOString(); } catch { return null; }
+}
+
+module.exports = { safeString, clampNumber, toIso };
