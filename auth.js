@@ -1,52 +1,52 @@
-2025-01-01 - update auth.js
-2025-01-07 - update auth.js
-2025-01-18 - update auth.js
-2025-01-20 - update auth.js
-2025-01-21 - update auth.js
-2025-01-24 - update auth.js
-2025-02-05 - update auth.js
-2025-02-05 - update auth.js
-2025-02-12 - update auth.js
-2025-02-13 - update auth.js
-2025-02-23 - update auth.js
-2025-03-03 - update auth.js
-2025-03-06 - update auth.js
-2025-03-10 - update auth.js
-2025-03-14 - update auth.js
-2025-03-20 - update auth.js
-2025-03-22 - update auth.js
-2025-03-25 - update auth.js
-2025-03-25 - update auth.js
-2025-04-03 - update auth.js
-2025-04-14 - update auth.js
-2025-04-15 - update auth.js
-2025-04-19 - update auth.js
-2025-04-22 - update auth.js
-2025-04-24 - update auth.js
-2025-04-25 - update auth.js
-2025-05-01 - update auth.js
-2025-05-02 - update auth.js
-2025-05-04 - update auth.js
-2025-05-09 - update auth.js
-2025-05-12 - update auth.js
-2025-05-20 - update auth.js
-2025-05-27 - update auth.js
-2025-05-30 - update auth.js
-2025-06-05 - update auth.js
-2025-06-16 - update auth.js
-2025-06-19 - update auth.js
-2025-06-19 - update auth.js
-2025-06-21 - update auth.js
-2025-06-22 - update auth.js
-2025-06-25 - update auth.js
-2025-07-03 - update auth.js
-2025-07-06 - update auth.js
-2025-07-10 - update auth.js
-2025-07-16 - update auth.js
-2025-07-18 - update auth.js
-2025-07-23 - update auth.js
-2025-07-27 - update auth.js
-2025-07-29 - update auth.js
-2025-08-05 - update auth.js
-2025-08-19 - update auth.js
-2025-08-21 - update auth.js
+'use strict';
+/**
+ * Kimlik doğrulama yardımcıları: JWT, parola hash/verify, middleware.
+ */
+const jwt = require('jsonwebtoken');
+const bcrypt = require('bcrypt');
+
+const JWT_SECRET = process.env.JWT_SECRET || 'dev_secret';
+const JWT_EXPIRES = '7d';
+
+async function hashPassword(plain) {
+  const saltRounds = 10;
+  return bcrypt.hash(plain, saltRounds);
+}
+
+async function verifyPassword(plain, hash) {
+  return bcrypt.compare(plain, hash);
+}
+
+function signToken(payload) {
+  return jwt.sign(payload, JWT_SECRET, { expiresIn: JWT_EXPIRES });
+}
+
+function authRequired(req, res, next) {
+  const hdr = req.headers['authorization'] || '';
+  const token = hdr.startsWith('Bearer ') ? hdr.slice(7) : null;
+  if (!token) return res.status(401).json({ error: 'Unauthorized' });
+  try {
+    const decoded = jwt.verify(token, JWT_SECRET);
+    req.user = decoded;
+    next();
+  } catch (e) {
+    return res.status(401).json({ error: 'Invalid token' });
+  }
+}
+
+function requireRole(...roles) {
+  return (req, res, next) => {
+    if (!req.user || !roles.includes(req.user.role)) {
+      return res.status(403).json({ error: 'Forbidden' });
+    }
+    next();
+  };
+}
+
+module.exports = {
+  hashPassword,
+  verifyPassword,
+  signToken,
+  authRequired,
+  requireRole,
+};
