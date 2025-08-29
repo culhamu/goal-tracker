@@ -1,38 +1,41 @@
-2025-01-02 - update tracker.js
-2025-01-04 - update tracker.js
-2025-01-07 - update tracker.js
-2025-01-18 - update tracker.js
-2025-01-20 - update tracker.js
-2025-02-05 - update tracker.js
-2025-02-14 - update tracker.js
-2025-02-18 - update tracker.js
-2025-02-19 - update tracker.js
-2025-02-20 - update tracker.js
-2025-02-25 - update tracker.js
-2025-03-03 - update tracker.js
-2025-03-21 - update tracker.js
-2025-03-30 - update tracker.js
-2025-04-02 - update tracker.js
-2025-04-11 - update tracker.js
-2025-04-16 - update tracker.js
-2025-04-28 - update tracker.js
-2025-05-01 - update tracker.js
-2025-05-21 - update tracker.js
-2025-05-22 - update tracker.js
-2025-06-09 - update tracker.js
-2025-06-22 - update tracker.js
-2025-06-26 - update tracker.js
-2025-06-29 - update tracker.js
-2025-07-01 - update tracker.js
-2025-07-02 - update tracker.js
-2025-07-07 - update tracker.js
-2025-07-18 - update tracker.js
-2025-08-04 - update tracker.js
-2025-08-07 - update tracker.js
-2025-08-10 - update tracker.js
-2025-08-19 - update tracker.js
-2025-08-19 - update tracker.js
-2025-08-25 - update tracker.js
-2025-08-27 - update tracker.js
-2025-08-28 - update tracker.js
-2025-08-28 - update tracker.js
+/*!
+ * Basit istemci izleme: sayfa görüntüleme ve UI etkileşimlerini API'ye yollar.
+ * Sağlık verilerinden bağımsızdır; ürün kalitesi metrikleri için örneklenmiştir.
+ */
+(function(){
+  const ENDPOINT = '/api/vitals'; // örnek: sayfa açılışında context HR yoksa sadece "mood" yolla
+  const QUEUE = [];
+  const FLUSH_INTERVAL = 2500;
+
+  function send(path, payload, authToken) {
+    const body = JSON.stringify(payload);
+    const headers = { 'Content-Type': 'application/json' };
+    if (authToken) headers['Authorization'] = 'Bearer ' + authToken;
+    fetch(path, { method:'POST', headers, body }).catch(()=>{});
+  }
+
+  function track(type, payload) {
+    // Bu tracker sağlık datası yollamaz; sadece demo amaçlı mood/nota izin veriyoruz.
+    const evt = { mood: type, note: JSON.stringify(payload||{}).slice(0,128) };
+    QUEUE.push(evt);
+  }
+
+  function flush() {
+    if (!window.__tracker || !window.__tracker.userId || !window.__tracker.token) return;
+    while (QUEUE.length) {
+      const evt = QUEUE.shift();
+      send(ENDPOINT, evt, window.__tracker.token);
+    }
+  }
+
+  window.__tracker = {
+    userId: null,
+    token: null,
+    setUser(id){ this.userId = String(id); },
+    setToken(t){ this.token = t; },
+    track
+  };
+
+  setInterval(flush, FLUSH_INTERVAL);
+  window.addEventListener('beforeunload', flush);
+})();
